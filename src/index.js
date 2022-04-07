@@ -1,37 +1,40 @@
-import { Widget, VDOM, CSS } from 'cx/ui';
 import codemirror from 'codemirror';
-import "codemirror/lib/codemirror.css";
-import "codemirror/mode/jsx/jsx";
-import "codemirror/mode/javascript/javascript";
-import "codemirror/mode/css/css";
-import "codemirror/addon/edit/matchtags";
-import "codemirror/addon/edit/closetag";
-
+import 'codemirror/addon/edit/closetag';
+import 'codemirror/addon/edit/matchtags';
+import 'codemirror/addon/selection/active-line';
+import 'codemirror/mode/clike/clike';
+import 'codemirror/mode/javascript/javascript';
+import 'codemirror/mode/python/python';
+import { CSS, VDOM, Widget } from 'cx/ui';
+import { isString } from 'cx/util';
 
 export class CodeMirror extends Widget {
-
    declareData() {
       return super.declareData(...arguments, {
-         code: undefined
+         code: undefined,
+         className: { structured: true },
+         class: { structured: true },
+         style: { structured: true },
+         onSave: undefined,
+         lineSeparator: '\n',
       });
    }
 
    render(context, instance, key) {
-      return <Component key={key} instance={instance} data={instance.data} />
+      return <Component key={key} instance={instance} data={instance.data} />;
    }
 }
 
 CodeMirror.prototype.baseClass = 'codemirror';
-CodeMirror.prototype.styled = true;
 
 class Component extends VDOM.Component {
    render() {
-      var {data, widget} = this.props.instance;
-      return <div className={data.classNames} style={data.style}>
-         <textarea className={CSS.element(widget.baseClass, 'input')}
-                   defaultValue={data.code}
-                   ref="input"/>
-      </div>
+      var { data, widget } = this.props.instance;
+      return (
+         <div className={data.classNames} style={data.style}>
+            <textarea className={CSS.element(widget.baseClass, 'input')} defaultValue={data.code} ref="input" />
+         </div>
+      );
    }
 
    shouldComponentUpdate() {
@@ -39,43 +42,39 @@ class Component extends VDOM.Component {
    }
 
    componentDidMount() {
-      var {widget} = this.props.instance;
+      var { widget } = this.props.instance;
       this.cm = codemirror.fromTextArea(this.refs.input, {
          lineNumbers: true,
+         autoRefresh: true,
+         fixedGutter: false,
          mode: widget.mode,
-         tabSize: 2,
-         matchTags: {bothTags: true},
+         tabSize: 4,
+         matchTags: { bothTags: true },
          autoCloseTags: true,
-         extraKeys: {
-            'Ctrl-R': ::this.save,
-            'Ctrl-S': ::this.save,
-            'Ctrl-I': ::this.resolveImport,
-         }
+         styleActiveLine: true,
+         lineSeparator: widget.lineSeparator,
       });
-      this.cm.on('blur', ::this.onBlur);
+      this.cm.on('blur', () => this.onBlur());
    }
-   
+
    componentWillReceiveProps(props) {
-      if (props.data.code != this.cm.getValue())
-         this.cm.setValue(props.data.code || '');
+      if (props.data.code != this.cm.getValue()) this.cm.setValue(props.data.code || '');
    }
 
    save() {
-      var {widget, store} = this.props.instance;
+      var { widget, store } = this.props.instance;
       if (widget.nameMap.code) {
          var value = this.cm.getValue();
-         if (typeof value == 'string')
-            store.set(widget.nameMap.code, value);
+         if (typeof value == 'string') store.set(widget.nameMap.code, value);
       }
    }
 
-   resolveImport() {
-      var {widget} = this.props.instance;
-      var selection = this.cm.getSelection();
-      if (selection && widget.onImportName) {
-         var code = widget.onImportName(this.cm.getValue(), selection);
-         this.cm.setValue(code);
-      }
+   doSave() {
+      this.save();
+
+      let { data, controller } = this.props.instance;
+      if (isString(data.onSave)) controller[data.onSave]();
+      else onSave();
    }
 
    onBlur() {
@@ -83,4 +82,4 @@ class Component extends VDOM.Component {
    }
 }
 
-CodeMirror.prototype.mode = 'javascript';
+CodeMirror.prototype.mode = 'application/json';
