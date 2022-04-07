@@ -1,0 +1,30 @@
+{
+    "name": "cx-codemirror-editor",
+    "version": "0.0.3",
+    "description": "CxJS code editor component, based on CodeMirror",
+    "main": "./src/index.js",
+    "author": "Ognjen Stefanovic",
+    "license": "MIT",
+    "keywords": [
+       "codemirror",
+       "editor",
+       "code",
+       "cx",
+       "field",
+       "text"
+    ],
+    "files": [
+       "src"
+    ],
+    "dependencies": {
+       "codemirror": "^5.56.0"
+    },
+    "homepage": "https://github.com/ognjenst/cxjs-widget-codemirror#readme",
+    "repository": {
+       "type": "git",
+       "url": "git+https://github.com/ognjenst/cxjs-widget-codemirror.git"
+    },
+    "bugs": {
+       "url": "https://github.com/ognjenst/cxjs-widget-codemirror/issues"
+    }
+ }
